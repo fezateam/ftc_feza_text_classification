@@ -16,6 +16,8 @@
     - [Sonuçlar](#sonuçlar)
   - [Çalıştırma](#çalıştırma)
     - [Config dosyası parametreleri](#config-dosyası-parametreleri)
+    - [Augmentation](#augmentation)
+    - [Backtranslation](#backtranslation)
     - [Train](#train)
     - [Prediction](#prediction)
     - [Evaluation](#evaluation)
@@ -50,6 +52,17 @@ Sonuç olarak, zorbalık ve siber zorbalık gibi öne çıkan konuların ele al�
 
 ### Sonuçlar
 
+**Turkish ConvBert**
+
+| Metric   | Score     |
+| -------- | --------- |
+| F-Score  | 0.9771389777749045 |
+| Accuracy | 0.9771389777749045  |
+
+[Model link](https://huggingface.co/dbmdz/bert-base-turkish-cased)
+
+[Eğitilmiş model linki (Gdrive)](https://drive.google.com/drive/folders/1VjgdzLOH3HYOhLwr_nehc1TgOPiF-wol?usp=sharing)
+
 **Distilled Turkish BERT**
 
 | Metric   | Score     |
@@ -72,6 +85,16 @@ Sonuç olarak, zorbalık ve siber zorbalık gibi öne çıkan konuların ele al�
 
 [Eğitilmiş model linki (Gdrive)](https://drive.google.com/drive/folders/1LE7fbrEysMV4JlZIz3IGuJS60UdSCHBQ?usp=share_link)
 
+**TurkishBert**
+
+| Metric   | Score              |
+| -------- | ------------------ |
+| F-Score  | 0.9833055213942692 |
+| Accuracy | 0.9834462837462504 |
+
+[Model link](https://huggingface.co/dbmdz/bert-base-turkish-128k-cased)
+
+[Eğitilmiş model linki (Gdrive)](https://docs.google.com/document/d/1iQwHIW9j41EzLSw4iDr8Wm19wQpeAeSljbhpcznXv0c/edit?usp=share_link)
 ## Çalıştırma
 Projenin kontrolü ve çalıştırılması kolay ve elastik bir şekilde gerçekleştirilebilir.
 
@@ -94,7 +117,7 @@ Tüm bu özellikler main scripti aracılığı ile kontrol edilebilir. main scri
   * `data_path`: Veriseti yolu
   * `text_column`: Verilen csv verisetinde hangi kolonun text içerdiğini belirtir.
   * `target_column`: Verilen csv verisetinde hangi kolonun sınıfları içerdiğini belirtir.
-  * `output_path`: Model ve tonizer çıktılarının hangi dosyaya kaydedilmesi istendiği belirtilir.
+  * `output_path`: Model ve tonizer çıktılarının hangi dosyaya kaydedilmesi istendiği belirtilir. Prediction ve evaluation adımlarında modelin kaynak dosyası olarak kullanılır.
   * `model_folder`: Eğitilecek modelin dosya yolu belirtilir. Huggingface modelleri de verilebilir. [dbmdz/convbert-base-turkish-mc4-cased]
   * `tokenizer_folder`: Tokenizer dosya yolunu belirtir.  Huggingface tokenizerleri de verilebilir. [dbmdz/convbert-base-turkish-mc4-cased]
   * `training_json_file`: Json formatında verilen dosya ismine train history kaydeder.
@@ -107,6 +130,26 @@ Tüm bu özellikler main scripti aracılığı ile kontrol edilebilir. main scri
   ```console
   cd feza_text_classification
   ```  
+### Augmentation
+  Size, metin sınıflandırma görevlerinin performansını artırmaya yardımcı olabilecek kolay veri artırma teknikleri setini (EDA) sunuyoruz. Bu teknikler beş farklı doğal dil işleme sınıflandırma görevinde test edilmiş ve özellikle daha küçük veri setleri için etkili bulunmuştur. Anlamlı kazanımlar sağlamak için harici dil modelleri gerektiren diğer yöntemlerin aksine, EDA basit metin düzenleme işlemleri kullanır. Bu teknikleri uygulamak için, eğitim seti cümlesi üzerinde aşağıdaki işlemle gerçekleştirilir:
+  1.	Eşanlamlı Değiştirme (SR): Cümleden rastgele n sayıda kelime seçilip her birini rastgele seçilmiş bir eşanlamlısıyla değiştirilir.
+  2.	Rastgele Ekleme (RI): Cümledeki bir kelimenin eşanlamlısı bulunarak, n kez rastgele bir pozisyona yerleştirilir.
+  3.	Rastgele Swap (RS): Rastgele seçilen iki kelimenin pozisyonları n kez değiştirilir.
+  4.	Rastgele Silme (RD): Cümleden her kelime, p olasılığıyla rastgele çıkarılır.
+
+### Backtranslation
+ Metin sınıflandırmasında, eğitim belgeleri harici bir sistem kullanılarak başka bir dile çevrilir ve ardından composite eğitim örnekleri oluşturmak için orijinal dile dönüştürülür; bu teknoloji **geri çeviri** olarak bilinir.
+
+**Kullanım:**
+
+**1.Adım,** önişleme yapmak için pre_processing.py betiğini kullanıyoruz. Bu script bir CSV dosyasını alıp, ``text\tlabel\ttarget`` formatında ayrıştırılmış bir .txt dosyası döndürüyor. Scriptte girdi ve çıktı dosya adlarını ayarladıktan sonra ``python .\pre_processing.py`` komutunu kullanıyoruz.
+
+**2.Adım**, translate.py scriptini kullanarak Türkçeden İngilizceye çevirme işlemi yapılıyor. ``python .\translate.py -i <girdi_dosya_adı.txt> -o <çıktı_dosya_adı.txt> -m Helsinki-NLP/opus-mt-tc-big-tr-en`` komutunu kullanıyoruz.
+
+**3.Adım**, agument.py scripti ile çevirisi yapılmış dosyayı kullanarak EDA(Keşifçi Veri Analizi) işlemi yapılıyor. ``python augment.py --input=<girdi_dosya_adı.txt> --output=<çıktı_dosya_adı.txt> --num_aug=16 --alpha_sr=0.05 --alpha_rd=0.1 --alpha_ri=0.0 --alpha_rs=0.0`` komutunu kullanıyoruz.
+
+**4.Adım**, translate.py scriptini kullanarak çıktı dosyasını İngilizceden Türkçeye çeviriyoruz. ``python .\translate.py -i <girdi_dosya_adı.txt> -o <çıktı_dosya_adı.txt> -m Helsinki-NLP/opus-mt-tc-big-en-tr`` komutunu kullanıyoruz.
+
  ### Train
   ```console
   python3 main.py --config_yaml_path configs/config.yaml --mode train
