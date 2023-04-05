@@ -1,0 +1,11 @@
+deneme.ipynb
+.DS_Store
+fezatextclassification.ipynb
+models/nlp_pt2_distil_model/*
+
+models/nlp_pt2_distil_tokenizer/*
+models/nlp_pt2_turkishberts_tokenizer/*
+models/nlp_pt2_turkishberts_model/*
+models/nlp_pt2_v1_model/*
+models/nlp_pt2_v1_tokenizer/*
+out/train.json

@@ -1,0 +1,15 @@
+version: 0.8.1
+device: "mps"
+seed_val: 2019
+epochs: 32
+batch_size: 16
+train_split_ratio: 0.9
+data_path: "./data/nlp_pt2.csv"
+text_column: "text"
+target_column: "target"
+output_path: "./models/nlp_pt2_turkishberts"
+model_folder: "dbmdz/bert-base-turkish-cased"
+tokenizer_folder: "dbmdz/bert-base-turkish-cased"
+training_json_file: "./out/train.json"
+cache_dir: ".cache"
+classes: ["INSULT", "RACIST", "SEXIST", "PROFANITY"]
